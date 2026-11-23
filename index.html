@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>frash: pay websites by the visit, not with ads</title>
+<meta name="description" content="frash is a prepaid wallet. You top it up once, and each website you allow takes a fraction of a cent per visit instead of showing you ads.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper:  #f2f5f6;
+    --sheet:  #ffffff;
+    --ink:    #13232b;
+    --soft:   #55666e;
+    --rule:   #d6dfe2;
+    --teal:   #007f73;
+    --marker: #ffe066;
+    --sans: "IBM Plex Sans", system-ui, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { animation: none !important; } }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 18px/1.6 var(--sans); }
+  a { color: var(--teal); text-underline-offset: 3px; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--teal); outline-offset: 3px; border-radius: 4px; }
+
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+  .col  { max-width: 66ch; }
+
+  header.top { display: flex; justify-content: space-between; align-items: baseline; padding: 28px 0; }
+  .logo { font: 600 24px/1 var(--sans); letter-spacing: -.02em; color: var(--ink); text-decoration: none; }
+  .logo b { color: var(--teal); font-weight: 600; }
+  nav a { color: var(--soft); text-decoration: none; margin-left: 22px; font-size: 16px; }
+  nav a:hover { color: var(--ink); }
+
+  /* The one loud thing: the price of a page visit, printed in full. */
+  .hero { padding: 56px 0 72px; }
+  .price {
+    font: 500 clamp(40px, 9.5vw, 112px)/1 var(--mono); letter-spacing: -.04em;
+    font-variant-numeric: tabular-nums; white-space: nowrap; margin: 0;
+  }
+  .price .zeros { color: #9fb0b6; }
+  .price .digits { text-decoration: underline .2em var(--marker); text-underline-offset: .04em; text-decoration-skip-ink: none; }
+  .price-note { font: 400 16px/1.4 var(--mono); color: var(--soft); margin: 18px 0 0; }
+  .hero h1 { font: 600 clamp(30px, 4.4vw, 46px)/1.15 var(--sans); letter-spacing: -.02em; margin: 56px 0 18px; max-width: 22ch; }
+  .hero p.lead { font-size: 21px; color: var(--soft); margin: 0 0 32px; }
+  .cta { display: inline-block; background: var(--ink); color: #fff; padding: 14px 24px; border-radius: 8px;
+    text-decoration: none; font-weight: 500; }
+  .cta:hover { background: var(--teal); }
+
+  section { padding: 64px 0; border-top: 1px solid var(--rule); }
+  h2 { font: 600 30px/1.2 var(--sans); letter-spacing: -.015em; margin: 0 0 20px; }
+  h3 { font: 600 19px/1.3 var(--sans); margin: 28px 0 6px; }
+  p { margin: 0 0 14px; }
+
+  /* How it works is a real sequence, so it is numbered. */
+  ol.flow { list-style: none; counter-reset: f; padding: 0; margin: 28px 0 0;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  ol.flow li { counter-increment: f; border-top: 3px solid var(--ink); padding-top: 14px; }
+  ol.flow li::before { content: counter(f); font: 500 15px var(--mono); color: var(--teal); display: block; margin-bottom: 8px; }
+  ol.flow b { display: block; font-size: 19px; margin-bottom: 4px; }
+  ol.flow span { color: var(--soft); font-size: 16px; }
+
+  /* A receipt: what a top-up turns into. */
+  .receipt { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 22px 26px;
+    font: 400 16px/1.9 var(--mono); max-width: 460px; margin-top: 24px; }
+  .receipt div { display: flex; justify-content: space-between; gap: 20px; }
+  .receipt .sum { border-top: 1px dashed var(--rule); margin-top: 6px; padding-top: 6px; font-weight: 500; }
+
+  .policy { columns: 2 320px; column-gap: 56px; }
+  .policy > div { break-inside: avoid; margin-bottom: 26px; }
+  .policy h3 { margin-top: 0; }
+  .policy p { font-size: 16px; color: var(--soft); }
+
+  .fill { background: var(--marker); color: var(--ink); padding: 0 4px; border-radius: 3px; }
+
+  footer { border-top: 1px solid var(--rule); padding: 32px 0 56px; font-size: 15px; color: var(--soft); }
+  footer p { margin: 0 0 4px; }
+
+  @media (max-width: 760px) {
+    nav { display: none; }
+    ol.flow { grid-template-columns: 1fr; }
+    .hero { padding-top: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <a class="logo" href="#">fr<b>a</b>sh</a>
+  <nav aria-label="Main">
+    <a href="#how">How it works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#terms">Terms</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<main>
+<div class="hero">
+  <p class="price" aria-label="0.0004 cents"><span class="zeros">0.000</span><span class="digits">4</span>¢</p>
+  <p class="price-note">What one visit to a small web page costs its server.</p>
+  <h1>Pay websites what a visit really costs, instead of seeing their ads.</h1>
+  <p class="lead col">frash is a prepaid wallet. You add money once. Each site you allow takes a tiny amount per page, and shows you that page without ads.</p>
+  <a class="cta" href="#how">See how it works</a>
+</div>
+
+<section id="how">
+  <h2>How it works</h2>
+  <p class="col">A card payment costs about 25 cents in fees, so nobody can pay a fraction of a cent with a card. frash collects one top-up, and every visit after that is an entry in your balance.</p>
+  <ol class="flow">
+    <li><b>Top up</b><span>Add money with a card or BLIK. The amount goes to your frash balance.</span></li>
+    <li><b>Allow a site</b><span>The site shows its limits: the most it can take per page and per minute. Nothing is charged until you press Allow.</span></li>
+    <li><b>Browse without ads</b><span>Each page takes its real server cost from your balance. You see every charge on your Spending page.</span></li>
+  </ol>
+
+  <h3>The limits are enforced</h3>
+  <p class="col">A site cannot take more than the limits you allowed. The wallet refuses a charge over a limit. You can remove a site's permission at any time.</p>
+
+  <h3>Spam pays for itself</h3>
+  <p class="col">Every request costs its sender. A normal visitor pays a fraction of a cent. A bot that sends millions of requests pays for each one, and the site can use that money for the extra server capacity.</p>
+</section>
+
+<section id="pricing">
+  <h2>Pricing</h2>
+  <p class="col">frash has no subscription. You pay only for the top-ups you choose to make.</p>
+  <ul class="col">
+    <li>Top-ups in USD, EUR, PLN or GBP, by card or BLIK, through Stripe.</li>
+    <li>The smallest top-up is <span class="fill">2 USD</span> or the same value in another currency.</li>
+    <li>Your balance is kept in US dollars. A top-up in another currency is converted at the market rate of that day.</li>
+    <li>Sites set their own price per visit. Most pages cost between 0.001 and 0.1 cent.</li>
+  </ul>
+  <div class="receipt" aria-label="Example: a 5 USD top-up">
+    <div><span>Top-up</span><span>5.00 USD</span></div>
+    <div><span>News article, 140 pages</span><span>−0.0560 USD</span></div>
+    <div><span>Recipe site, 32 pages</span><span>−0.0064 USD</span></div>
+    <div><span>Forum, 600 pages</span><span>−0.0360 USD</span></div>
+    <div class="sum"><span>Balance left</span><span>4.9016 USD</span></div>
+  </div>
+</section>
+
+<section id="terms">
+  <h2>Terms and policies</h2>
+  <div class="policy">
+    <div>
+      <h3>What you buy</h3>
+      <p>A top-up adds prepaid credit to your frash balance. You spend the credit on websites that accept frash. The credit is not a bank deposit and earns no interest.</p>
+    </div>
+    <div id="refunds">
+      <h3>Refunds</h3>
+      <p>You can withdraw from a top-up within 14 days and get the unused part of it back. After 14 days, you can ask for the unused balance back at any time. We refund to the card or account you paid with, within <span class="fill">10 working days</span>. Credit already spent on a site is not refunded by frash.</p>
+    </div>
+    <div>
+      <h3>Cancellation</h3>
+      <p>There is no subscription to cancel. You can stop using frash at any time and ask for your unused balance back.</p>
+    </div>
+    <div>
+      <h3>Disputes</h3>
+      <p>If a site charged you for something you did not get, write to us. Show the charge from your Spending page. We check it with the site.</p>
+    </div>
+    <div id="privacy">
+      <h3>Privacy</h3>
+      <p>frash keeps your balance, the sites you allowed and each charge. If you sign in with Google or e-mail, we keep that sign-in to find your balance again. Stripe processes your payment details; frash never sees your card number. We do not sell data or show ads.</p>
+    </div>
+    <div>
+      <h3>Delivery</h3>
+      <p>frash is a digital service. Your credit is on your balance right after Stripe confirms the payment. Nothing is shipped.</p>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <h2>Contact</h2>
+  <p class="col">Questions, refunds and disputes: <a href="mailto:CONTACT"><span class="fill">contact e-mail</span></a>. We answer within <span class="fill">2 working days</span>.</p>
+</section>
+</main>
+
+<footer>
+  <p>frash is run by <span class="fill">legal name</span>, <span class="fill">address</span>.</p>
+  <p>Payments are processed by Stripe.</p>
+</footer>
+
+</div>
+</body>
+</html>
